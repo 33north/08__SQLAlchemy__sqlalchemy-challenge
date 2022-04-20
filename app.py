@@ -29,11 +29,14 @@ def home():
     """List all available api routes."""
     return (
         f"Available Routes:<br/>"
-        f"/api/v1.0/all_stocks<br/>"
+        f"/api/v1.0/precipitation<br/>"
+        f"/api/v1.0/stations<br/>"
+        f"/api/v1.0/tobs<br/>"
+        f"/api/v1.0/precipitation<br/>"
     )
 
-@app.route("/api/v1.0/all_stocks")
-def all_stocks():
+@app.route("/api/v1.0/precipitation")
+def precipitation():
     # Create our session (link) from Python to the sqlite
     session = Session(engine)
 
@@ -61,9 +64,15 @@ def all_stocks():
 
     return jsonify(all_stocks)
 
-# @app.route("/api/v1.0/")
-# def ():
-#     return()
+
+
+@app.route("/api/v1.0/stations")
+def stations():
+    return()
+
+@app.route("/api/v1.0/tobs")
+def tobs():
+    return()
 
 if __name__ == '__main__':
     app.run(debug = True)
