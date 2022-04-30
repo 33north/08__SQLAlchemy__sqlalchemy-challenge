@@ -10,11 +10,20 @@ from flask import Flask, render_template, jsonify
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///resources/allstock.sqlite")
+# Create and connect engine to db
+engine = create_engine("sqlite:///resources/hawaii.sqlite")
 connection = engine.connect()
 
-# Execute sql query
-stocks = engine.execute("SELECT * FROM Stocks WHERE date >= '2017-01-01'").all()
+# Reflect db
+Base = automap_base()
+Base.prepare(engine, reflect = True)
+
+# Saving tables from the reflected db
+Measurement = Base.classes.measurement
+Station = Base.classes.station
+
+# Create session from engine
+session = Session(engine)
 
 #################################################
 # Flask Setup
@@ -32,46 +41,42 @@ def home():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/precipitation<br/>"
+        
     )
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-    # Create our session (link) from Python to the sqlite
-    session = Session(engine)
-
-    """Return a list of all stocks"""
-    # Query all stocks
-    results = stocks
+    # Session query of Measurement table for date and prcp
+    prcp_date = session.query(Measurement.date, Measurement.prcp).all()
 
     # Close session
     session.close()
 
-    all_stocks = []
-    for index, date, open_price, high_price, low_price, close_price, volume, Symbol, Name, Industry in results:
-        stock_dict = {}
-        # stock_dict["index"] = index
-        stock_dict["date"] = date
-        stock_dict["open"] = open_price
-        stock_dict["high"] = high_price
-        stock_dict["low"] = low_price
-        stock_dict["close"] = close_price
-        stock_dict["volume"] = volume
-        stock_dict["symbol"] = Symbol
-        stock_dict["name"] = Name
-        stock_dict["industry"] = Industry
-        all_stocks.append(stock_dict)
+    # Changing data to dictionary
+    precipitation_list = []
+    for date, prcp in prcp_date:
+        prcp_dict = {}
+        prcp_dict["date"] = date
+        prcp_dict["precipitation"] = prcp
+        precipitation_list.append(prcp_dict)
 
-    return jsonify(all_stocks)
-
-
+    return jsonify(precipitation_list)
 
 @app.route("/api/v1.0/stations")
 def stations():
-    return()
+    # Session query of Station table for station
+    station_names = session.query(Station.station).all()
+
+    # Close session
+    session.close()
+
+    station_list = list(np.ravel(station_names))
+
+    return jsonify(station_list)
 
 @app.route("/api/v1.0/tobs")
 def tobs():
+    
     return()
 
 if __name__ == '__main__':
